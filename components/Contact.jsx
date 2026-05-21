@@ -1,8 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 
 const ContactPage = () => {
   const [hoveredCard, setHoveredCard] = useState(null);
   const [copied, setCopied] = useState(false);
+  
+  // Track the currently active map query string
+  const [mapQuery, setMapQuery] = useState("20.99820751334766,75.58443749584006");
+  
+  // Ref to help scroll smoothly to the map when a location card is clicked
+  const mapSectionRef = useRef(null);
 
   const handleCallNow = () => {
     window.location.href = "tel:+919576961723";
@@ -23,6 +29,29 @@ const ContactPage = () => {
     }
   };
 
+  // Dynamically change map location and scroll map into view
+  const handleLocationClick = (e, mapUrl) => {
+    e.preventDefault();
+    // Extract the actual Google Maps embed URL from the share link
+    let embedUrl = mapUrl;
+    if (mapUrl.includes("maps.app.goo.gl")) {
+      // For Google Maps short links, we'll use the coordinates or a direct search
+      // Since we can't resolve short links directly in iframe, we'll use the address as search query
+      if (mapUrl.includes("7xwWa5GRYgsGYvow7")) {
+        setMapQuery(encodeURIComponent("Kherwas Badnawar Dhar Madhya Pradesh 454660"));
+      } else if (mapUrl.includes("sdUC4dcbuUy5Pndb9")) {
+        setMapQuery(encodeURIComponent("MIDC Nardana Jatode Sindkheda Dhule Maharashtra 425404"));
+      } else {
+        setMapQuery(encodeURIComponent(mapUrl));
+      }
+    } else {
+      setMapQuery(encodeURIComponent(mapUrl));
+    }
+    if (mapSectionRef.current) {
+      mapSectionRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  };
+
   const contactCards = [
     {
       id: 1,
@@ -36,7 +65,7 @@ const ContactPage = () => {
       id: 2,
       icon: "📞",
       title: "Call Directly",
-      details: ["+91 9576961723", "Mon – Sat : 9am – 6pm"],
+      details: ["+91 8698780300 ","+91 9576961723", "Mon – Sat : 9am – 6pm"],
       highlight: "⚡ emergency support available",
       gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
     },
@@ -55,6 +84,49 @@ const ContactPage = () => {
       details: ["Monday – Friday : 9:00 AM – 6:00 PM", "Sunday & Holidays : Closed"],
       highlight: "✨ walk-ins welcome",
       gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"
+    }
+  ];
+
+  const inlineLocationCards = [
+    {
+      id: 1,
+      city: "Jalgaon",
+      address: "Orient Cement Limited, NH-6, Nashirabad Post, Jalgaon 425001",
+      mapUrl: "https://maps.google.com/?q=Orient+Cement+Jalgaon+Maharashtra",
+      icon: "🏭",
+      gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+    },
+    {
+      id: 2,
+      city: "Chandrapur",
+      address: "Dalmia Cement, Naranda, Korpana Road, Maharashtra-442916",
+      mapUrl: "https://maps.google.com/?q=Dalmia+Cement+Chandrapur+Cement+Works+Naranda+Maharashtra",
+      icon: "🏭",
+      gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+    },
+    {
+      id: 3,
+      city: "Nardana",
+      address: "Plot No. 4 Nardana, MIDC(Phase 1), Taluka, Sindkheda, Jatode, Maharashtra 425404",
+      mapUrl: "https://maps.app.goo.gl/sdUC4dcbuUy5Pndb9",
+      icon: "🏭",
+      gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
+    },
+    {
+      id: 4,
+      city: "Pune",
+      address: "Penna Cement, Survey 594, Kangaon, Taluka Daund, Pune 412219",
+      mapUrl: "https://maps.google.com/?q=Penna+Cement+Industries+Kangaon+Daund+Pune+Maharashtra",
+      icon: "🏭",
+      gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"
+    },
+    {
+      id: 5,
+      city: "Madhya Pradesh",
+      address: "Plot No 1A & 1 B, Industrial Area Khenwas, Tehsil : Badnawar, Badnawar, Madhya Pradesh 454660",
+      mapUrl: "https://maps.app.goo.gl/7xwWa5GRYgsGYvow7",
+      icon: "🏭",
+      gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)"
     }
   ];
 
@@ -91,7 +163,7 @@ const ContactPage = () => {
           </p>
         </div>
 
-        {/* Animated Contact Cards - Scaled Down */}
+        {/* Animated Contact Cards */}
         <div className="info-grid">
           {contactCards.map((card, index) => (
             <div
@@ -130,8 +202,8 @@ const ContactPage = () => {
           ))}
         </div>
 
-        {/* Map Section */}
-        <div className="section-title">
+        {/* Dynamic Workspace Hub Map Section */}
+        <div className="section-title" ref={mapSectionRef}>
           <span className="section-badge">📍 location</span>
           <h2>Our workspace hub</h2>
           <div className="sub-line">Industrial excellence, right in the heart of MIDC</div>
@@ -140,16 +212,70 @@ const ContactPage = () => {
         <div className="map-wrapper-modern">
           <div className="map-overlay"></div>
           <iframe
-            title="Mahadev Engineers Location Map"
-            src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=20.99820751334766,75.58443749584006"
+            title="Workspace Location Map"
+            src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${mapQuery}`}
             style={{ border: 0, width: "100%", height: "350px", display: "block" }}
             allowFullScreen=""
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
           ></iframe>
         </div>
-  {/* Premium Bottom CTA */}
-     
+
+        {/* Open in Google Maps Button */}
+        <div className="open-map-container">
+          <a 
+            href={`https://www.google.com/maps/search/?api=1&query=${mapQuery}`}
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="open-map-btn"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+            Get Directions on Google Maps
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+              <polyline points="15 3 21 3 21 9" />
+              <line x1="10" y1="14" x2="21" y2="3" />
+            </svg>
+          </a>
+        </div>
+
+        {/* Footprint Section */}
+        <div className="section-title inline-cards-title">
+          <span className="section-badge">📍 our footprint</span>
+          <h2>Where We Operate</h2>
+          <div className="sub-line">Strategic locations serving industrial excellence across regions</div>
+        </div>
+
+        <div className="inline-cards-grid">
+          {inlineLocationCards.map((loc, index) => (
+            <div
+              key={loc.id}
+              className="inline-location-card"
+              style={{ animationDelay: `${index * 0.08}s` }}
+              onClick={(e) => handleLocationClick(e, loc.mapUrl)}
+            >
+              <div className="inline-card-inner">
+                <div className="inline-card-icon" style={{ background: loc.gradient }}>
+                  <span>{loc.icon}</span>
+                </div>
+                <h4>{loc.city}</h4>
+                <p>{loc.address}</p>
+                <button className="inline-map-link">
+                  <span>View on Map</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                    <polyline points="15 3 21 3 21 9" />
+                    <line x1="10" y1="14" x2="21" y2="3" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
       </div>
 
       <style>{`
@@ -327,7 +453,6 @@ const ContactPage = () => {
           to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Contact Cards - Smaller Size */
         .info-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -358,7 +483,6 @@ const ContactPage = () => {
           border-color: rgba(74, 108, 247, 0.3);
         }
 
-        /* Smaller Icon Wrapper */
         .card-icon-wrapper {
           position: relative;
           width: 70px;
@@ -379,7 +503,6 @@ const ContactPage = () => {
           transform: scale(1.08);
         }
 
-        /* Scaled Down Icon */
         .card-icon {
           position: relative;
           font-size: 2.2rem;
@@ -391,7 +514,6 @@ const ContactPage = () => {
           z-index: 1;
         }
 
-        /* Smaller Title */
         .info-card-item h3 {
           font-size: 1.3rem;
           font-weight: 700;
@@ -399,7 +521,6 @@ const ContactPage = () => {
           margin-bottom: 14px;
         }
 
-        /* Smaller Text */
         .info-detail {
           color: #3c4b6e;
           line-height: 1.5;
@@ -507,9 +628,9 @@ const ContactPage = () => {
           border-radius: 30px;
         }
 
-        .map-link-container {
+        .open-map-container {
           text-align: center;
-          margin-bottom: 40px;
+          margin-bottom: 30px;
           position: relative;
           z-index: 2;
         }
@@ -534,126 +655,150 @@ const ContactPage = () => {
           box-shadow: 0 10px 25px rgba(74, 108, 247, 0.35);
         }
 
-        .open-map-btn svg {
-          transition: transform 0.3s ease;
+        .inline-cards-title {
+          margin-top: 20px;
         }
 
-        .open-map-btn:hover svg {
-          transform: translateX(4px);
-        }
-
-        .cta-premium {
-          background: linear-gradient(135deg, #0b1a4a 0%, #1a2c5a 100%);
-          border-radius: 40px;
-          padding: 35px 45px;
+        .inline-cards-grid {
           display: flex;
           flex-wrap: wrap;
-          justify-content: space-between;
-          align-items: center;
-          gap: 25px;
+          justify-content: center;
+          gap: 20px;
           position: relative;
           z-index: 2;
-          overflow: hidden;
-          margin-top: 30px;
+          margin: 20px 0 40px;
         }
 
-        .cta-glow {
-          position: absolute;
-          top: -50%; left: -50%;
-          width: 200%; height: 200%;
-          background: radial-gradient(circle, rgba(255, 204, 0, 0.08), transparent);
-          animation: rotate 20s linear infinite;
+        .inline-location-card {
+          flex: 1;
+          min-width: 180px;
+          max-width: 220px;
+          animation: fadeInUp 0.6s ease backwards;
+          cursor: pointer;
         }
 
-        @keyframes rotate {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-
-        .cta-tag {
-          display: inline-block;
-          background: rgba(255, 204, 0, 0.2);
-          padding: 4px 12px;
+        .inline-card-inner {
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(10px);
           border-radius: 20px;
-          font-size: 0.65rem;
-          font-weight: 600;
-          color: #ffcc00;
-          margin-bottom: 12px;
+          padding: 20px 16px;
+          text-align: center;
+          transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+          border: 1px solid rgba(255, 255, 255, 0.5);
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+          height: 100%;
+          display: flex;
+          flex-direction: column;
         }
 
-        .cta-text h4 {
+        .inline-card-inner:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 20px 30px rgba(74, 108, 247, 0.12);
+          border-color: rgba(74, 108, 247, 0.2);
+        }
+
+        .inline-card-icon {
+          width: 50px;
+          height: 50px;
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 14px;
+          transition: all 0.3s ease;
+        }
+
+        .inline-card-icon span {
           font-size: 1.6rem;
+        }
+
+        .inline-card-inner:hover .inline-card-icon {
+          transform: scale(1.05);
+        }
+
+        .inline-card-inner h4 {
+          font-size: 1rem;
           font-weight: 700;
-          color: white;
-          letter-spacing: -0.3px;
+          color: #0b1a4a;
           margin-bottom: 8px;
         }
 
-        .cta-text p {
-          color: rgba(255, 255, 255, 0.75);
-          font-size: 0.85rem;
-          max-width: 450px;
-          line-height: 1.5;
+        .inline-card-inner p {
+          font-size: 0.7rem;
+          color: #5a6e92;
+          line-height: 1.4;
+          margin-bottom: 14px;
+          flex: 1;
         }
 
-        .cta-button-group { display: flex; gap: 15px; flex-wrap: wrap; }
-
-        .btn-call, .btn-email-copy {
-          padding: 12px 28px;
-          border-radius: 50px;
-          font-weight: 700;
-          font-size: 0.85rem;
-          cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-          display: flex;
+        .inline-map-link {
+          display: inline-flex;
           align-items: center;
-          gap: 10px;
-          border: none;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .btn-call {
-          background: linear-gradient(135deg, #ffcc00, #ffa000);
-          color: #0b1a4a;
-          box-shadow: 0 5px 15px rgba(255, 204, 0, 0.25);
-        }
-
-        .btn-email-copy {
-          background: rgba(255, 255, 255, 0.12);
-          backdrop-filter: blur(4px);
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          justify-content: center;
+          gap: 5px;
+          background: linear-gradient(135deg, #4a6cf7, #667eea);
           color: white;
+          padding: 5px 12px;
+          border-radius: 30px;
+          font-size: 0.65rem;
+          font-weight: 600;
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          width: fit-content;
+          margin: 0 auto;
         }
 
-        .btn-call:hover, .btn-email-copy:hover {
-          transform: translateY(-3px) scale(1.02);
+        .inline-map-link:hover {
+          transform: translateX(3px);
+          box-shadow: 0 4px 10px rgba(74, 108, 247, 0.3);
         }
 
-        .btn-call:hover { box-shadow: 0 10px 25px rgba(255, 204, 0, 0.35); }
-
-        .btn-email-copy:hover {
-          background: rgba(255, 255, 255, 0.18);
-          border-color: #ffcc00;
+        .inline-map-link svg {
+          transition: transform 0.2s ease;
         }
 
-        .btn-icon { font-size: 1rem; }
+        .inline-map-link:hover svg {
+          transform: translateX(2px);
+        }
 
-        /* Responsive */
+        /* Responsive Breakpoints */
+        @media (max-width: 1100px) {
+          .inline-location-card {
+            min-width: 170px;
+            max-width: 200px;
+          }
+        }
+
+        @media (max-width: 950px) {
+          .inline-cards-grid {
+            flex-wrap: wrap;
+            justify-content: center;
+          }
+          .inline-location-card {
+            min-width: 160px;
+            max-width: 180px;
+          }
+        }
+
         @media (max-width: 900px) {
           .contact-static { padding: 40px 20px 70px; }
           .hero-header h1 { font-size: 2.2rem; }
-          .cta-premium { flex-direction: column; text-align: center; padding: 30px 25px; }
-          .cta-button-group { justify-content: center; }
           .bg-ghost-text span { letter-spacing: 5px; font-size: 2.5rem; }
           .ghost-second { display: none; }
           .info-grid { gap: 20px; }
         }
 
+        @media (max-width: 700px) {
+          .inline-location-card {
+            min-width: calc(50% - 20px);
+            max-width: none;
+          }
+        }
+
         @media (max-width: 550px) {
           .hero-header h1 { font-size: 1.6rem; }
           .info-grid { grid-template-columns: 1fr; gap: 16px; }
-          .cta-text h4 { font-size: 1.3rem; }
           .info-card-item { padding: 22px 16px; }
           .card-icon-wrapper { width: 55px; height: 55px; margin-bottom: 12px; }
           .card-icon { font-size: 1.8rem; }
@@ -662,7 +807,8 @@ const ContactPage = () => {
           .small-highlight { font-size: 0.6rem; }
           .section-title h2 { font-size: 1.6rem; }
           .map-wrapper-modern iframe { height: 250px; }
-          .btn-call, .btn-email-copy { padding: 10px 20px; font-size: 0.75rem; }
+          .inline-location-card { min-width: 100%; }
+          .inline-card-inner { padding: 16px; }
         }
 
         @media (max-width: 380px) {
@@ -672,8 +818,6 @@ const ContactPage = () => {
           .info-card-item { padding: 18px 14px; }
           .card-icon-wrapper { width: 48px; height: 48px; }
           .card-icon { font-size: 1.5rem; }
-          .cta-premium { padding: 25px 20px; }
-          .cta-text h4 { font-size: 1.1rem; }
         }
       `}</style>
     </>
