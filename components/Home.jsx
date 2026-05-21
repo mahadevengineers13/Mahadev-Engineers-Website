@@ -1,31 +1,48 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 
 function Home() {
   const videoRef = useRef(null);
+  const [videoError, setVideoError] = useState(false);
 
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.play().catch(() => {});
+    if (videoRef.current && !videoError) {
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          console.log("Video autoplay failed:", error);
+        });
+      }
     }
-  }, []);
+  }, [videoError]);
+
+  const handleVideoError = () => {
+    console.error("Video failed to load");
+    setVideoError(true);
+  };
 
   return (
     <section id="home" className="home-hero">
+      {/* Fullscreen Background Video */}
+      {!videoError && (
+        <video
+          ref={videoRef}
+          className="bg-video"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          onError={handleVideoError}
+        >
+          <source src={`${import.meta.env.BASE_URL}video.mp4`} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      )}
 
-      {/* Fullscreen Video */}
-      <video
-        ref={videoRef}
-        className="bg-video"
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
-      >
-        <source src="/video.mp4" type="video/mp4" />
-      </video>
+      {/* Fallback background image if video fails */}
+      {videoError && <div className="video-fallback" />}
 
-      {/* Overlay — dark left side for readability, light right to show video */}
+      {/* Overlay — dark left side for readability, lighter right to show video */}
       <div className="hero-overlay" />
 
       {/* Text Content */}
@@ -72,6 +89,15 @@ function Home() {
           object-fit: cover;
           object-position: center;
           display: block;
+          z-index: 0;
+        }
+
+        .video-fallback {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          background: url('https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?q=80&w=2070&auto=format&fit=crop') center/cover;
           z-index: 0;
         }
 
@@ -134,7 +160,7 @@ function Home() {
         .word1 {
           display: inline;
           color: #ffffff;
-          text-shadow: 0 2px 24px rgba(0, 0, 0, 0.5);
+          text-shadow: 0 2px 24px rgba(0,0,0,0.5);
         }
 
         .word2 {
@@ -155,17 +181,6 @@ function Home() {
           text-transform: uppercase;
           opacity: 0.95;
           animation: fadeUp 0.9s 0.15s cubic-bezier(0.22, 1, 0.36, 1) both;
-        }
-
-        .hero-sub {
-          font-family: 'Montserrat', sans-serif;
-          font-weight: 400;
-          font-size: clamp(0.55rem, 0.9vw, 0.7rem);
-          letter-spacing: 2.5px;
-          color: rgba(200, 220, 240, 0.35);
-          text-transform: uppercase;
-          margin-top: 0.8rem;
-          animation: fadeUp 0.9s 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
 
         .divider-line {
@@ -203,7 +218,7 @@ function Home() {
           font-family: 'Montserrat', sans-serif;
           font-size: 10px;
           letter-spacing: 2.5px;
-          color: rgba(180, 210, 240, 0.4);
+          color: rgba(180,210,240,0.4);
           text-transform: uppercase;
         }
 
