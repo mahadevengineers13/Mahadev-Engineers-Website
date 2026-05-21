@@ -10,7 +10,7 @@ import Footer from "./components/Footer";
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/Mahadev-Engineers-Website/">
       <Navbar />
       <Routes>
         <Route path="/" element={
@@ -28,5 +28,4 @@ function App() {
     </BrowserRouter>
   );
 }
-
 export default App;
